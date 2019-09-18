@@ -1,0 +1,164 @@
+@import "common.scss";
+@import "utils/variables.scss";
+@import "utils/mixins.scss";
+@import "utils/functions.scss";
+
+html, body {
+	height: 100%;
+}
+
+body {
+    font-size: 16px; /* no */
+}
+
+#app {
+    width: 100%;
+    height: 100%;
+    max-width: 750px;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+}
+
+.page, .pop {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    display: none;
+    overflow: hidden;
+    &.active {
+    	display: block;
+    }
+}
+
+.page-inner {
+    width: 100%;
+    height: 100%;
+    max-height: 1448px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    .page-content {
+        width: 100%;
+        height: 100%;
+        max-height: 1206px;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        margin-top: -603px;
+    }
+}
+
+.pop {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+.box {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.box-center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    & > div {
+        flex-shrink: 0;
+    }
+}
+
+.box-center-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    & > div {
+        flex-shrink: 0;
+    }
+}
+
+.render {
+    display: block !important;
+}
+
+// loading
+.page-loading {
+    .loading-text {
+        font-size: 32px;
+    }
+}
+
+
+
+
+.fade-enter {
+    z-index: 9;
+    animation: fadeIn 0.6s ease-out 0s both;
+}
+
+.fade-leave {
+    animation: fadeOut 0.6s ease-out 0s both;
+}
+
+@keyframes fadeIn {
+    0% {
+        opacity: 0;
+    }
+    100% {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    0% {
+        opacity: 1;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+@keyframes rotate360 {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@keyframes breath {
+    0% {
+        transform: scale(1);
+    }
+    100% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes hang {
+    0% {
+        transform: translate(0, 0);
+    }
+    100% {
+        transform: translate(0, -10px);
+    }
+}
+
+@media only screen and (min-aspect-ratio: 750/1206) {
+    .page-inner {
+        .page-content {
+            top: 0;
+            margin-top: 0;
+        }
+    }
+}
+
+@media only screen and (min-aspect-ratio: 750/1008) {
+    
+}
