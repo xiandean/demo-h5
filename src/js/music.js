@@ -22,11 +22,11 @@ export default {
     stopBgm(reset) {
         const bgMusic = document.getElementById(this.bgMusic);
         if (bgMusic) {
-            bgMusic.pause();
-            bgMusic.parentNode.classList.remove('active');
             if (reset) {
                 bgMusic.currentTime = 0;
             }
+            bgMusic.pause();
+            bgMusic.parentNode.classList.remove('active');
         }
     },
 

@@ -78,7 +78,10 @@ export default {
         } else if (localStorage.getItem('user_openid_2019')) {
             user.openid = localStorage.getItem('user_openid_2019')
         } else {
-            window.location.href = 'http://interface.gd.sina.com.cn/gdif/gdwx2019v1/wxcode'
+            let url = window.location.href;
+            let link = url.split('?')[0];
+            url = url.replace(link, '');
+            window.location.href = `http://interface.gd.sina.com.cn/gdif/gdwx2019v1/wxcode${url}`;
             return Promise.reject('error: no openid')
         }
         return user.openid

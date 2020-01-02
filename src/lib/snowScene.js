@@ -1,10 +1,12 @@
-function Snow(data){
+// 单个粒子
+function Snow(data) {
     this.initData = data;
     this.bitmap = new createjs.Bitmap(data.image);
     this.init(data);
 }
 Snow.prototype = {
-    init: function(data){
+    // 粒子初始化
+    init: function(data) {
         this.bitmap.alpha = data.alpha || 1;
         this.bitmap.regX = this.bitmap.getBounds().width / 2;
         this.bitmap.regY = this.bitmap.getBounds().height / 2;
@@ -16,7 +18,8 @@ Snow.prototype = {
         this.vy = data.vy || 0;
         this.vrotation = data.vrotation || 0;
     },
-    update: function(){
+    // 粒子位置更新
+    update: function() {
         this.bitmap.x += this.vx;
         this.bitmap.y += this.vy;
         this.bitmap.rotation += this.vrotation;
@@ -25,7 +28,8 @@ Snow.prototype = {
     }
 }
 
-function snowScene(config){
+// 场景
+function snowScene(config) {
     this.stage = new createjs.Stage(config.canvas);
     this.stage.canvas.width = config.width || window.innerWidth;
     this.stage.canvas.height = config.height || window.innerHeight;
@@ -40,10 +44,14 @@ function snowScene(config){
     this.snows = [];
     this.pool = {};
 
+    // 是否不断旋转
+    this.noRotation = config.noRotation;
+
     // this.init();
 }   
 snowScene.prototype = {
-    init: function(callback){
+    // 场景初始化
+    init: function(callback) {
         createjs.Ticker.timingMode = createjs.Ticker.RAF;
         createjs.Ticker.framerate = 60;
         // createjs.Ticker.setFPS(60);
@@ -53,18 +61,18 @@ snowScene.prototype = {
         this.stage.update();
 
         if (callback) {
-            this.snowImages.on("complete",callback);
+            this.snowImages.on('complete', callback);
         }
         this.snowImages.loadManifest(this.images);
     },
     // 获取随机整数
-    getRandomInt: function(min, max){
+    getRandomInt: function(min, max) {
         return Math.floor(Math.random() * (max - min + 1) + min);
     },
-    getRandom: function(a,b){
-        return Math.random()*(b-a)+a;
+    getRandom: function(a, b) {
+        return Math.random() * (b - a) + a;
     },
-    removeSnow: function(snow){
+    removeSnow: function(snow) {
         this.stage.removeChild(snow.bitmap);
         if (!this.pool[snow.type]) {
             this.pool[snow.type] = [];
@@ -77,22 +85,12 @@ snowScene.prototype = {
             }
         }
     },
-    createSnow: function(){
+    createSnow: function() {
         var snowData = {};
-        var id = this.images[this.getRandomInt(0,this.images.length - 1)].id;
+        var id = this.images[this.getRandomInt(0, this.images.length - 1)].id;
         snowData.image = this.snowImages.getResult(id);
-        if (this.position === 'top') {
-            snowData.x = this.getRandom(snowData.image.width / 2, this.stage.canvas.width - snowData.image.width / 2);
-            snowData.y = -snowData.image.height / 2;
-        } else if (this.position === 'bottom') {
-            snowData.x = this.getRandom(snowData.image.width / 2, this.stage.canvas.width - snowData.image.width / 2);
-            snowData.y = this.stage.canvas.height + snowData.image.height / 2;
-        } else {
-            snowData.x = this.position[0];
-            snowData.y = this.position[1];
-        }
-        snowData.vx = this.getRandom(this.vx[0],this.vx[1]);
-        snowData.vy = this.getRandom(this.vy[0],this.vy[1]);
+        snowData.vx = this.getRandom(this.vx[0], this.vx[1]);
+        snowData.vy = this.getRandom(this.vy[0], this.vy[1]);
         // snowData.vx = Math.random() > 0.5 ? snowData.vx : -snowData.vx;
         // snowData.vy = Math.random() > 0.5 ? snowData.vy : -snowData.vy;
         
@@ -100,11 +98,29 @@ snowScene.prototype = {
             snowData.vx += snowData.vx / Math.abs(snowData.vx);
             snowData.vy += snowData.vy / Math.abs(snowData.vy);
         }
-        snowData.alpha = this.getRandom(50,100)/100;
-        snowData.scale = this.getRandom(50,100)/100;
-        snowData.rotation = this.getRandom(0,360);
-        (snowData.vx >= 0) && (snowData.vrotation = 1);
-        (snowData.vx < 0) && (snowData.vrotation = -1);
+        snowData.alpha = this.getRandom(50, 100) / 100;
+        snowData.scale = this.getRandom(50, 100) / 100;
+        snowData.rotation = this.getRandom(0, 360);
+
+        var imgWidth = snowData.image.width * snowData.scale;
+        var imgHeight = snowData.image.height * snowData.scale;
+        if (this.position === 'top') {
+            snowData.x = this.getRandom(imgWidth / 2, this.stage.canvas.width - imgWidth / 2);
+            snowData.y = -imgHeight / 2;
+        } else if (this.position === 'bottom') {
+            snowData.x = this.getRandom(imgWidth / 2, this.stage.canvas.width - imgWidth / 2);
+            snowData.y = this.stage.canvas.height + imgHeight / 2;
+        } else {
+            snowData.x = this.position[0];
+            snowData.y = this.position[1];
+        }
+
+        if (!this.noRotation) {
+            (snowData.vx >= 0) && (snowData.vrotation = 1);
+            (snowData.vx < 0) && (snowData.vrotation = -1);
+        } else {
+            snowData.vrotation = 0;
+        }
 
         if (this.pool[id] && this.pool[id].length) {
             var snow = this.pool[id].pop();
@@ -116,27 +132,27 @@ snowScene.prototype = {
         this.snows.push(snow);
         this.stage.addChild(snow.bitmap);
     },
-    start: function(){
+    start: function() {
         var _this = this;
         this.paused = false;
-        createjs.Ticker.addEventListener("tick", function(){
+        createjs.Ticker.addEventListener('tick', function() {
             if (!_this.snowImages.getResult(_this.images[0].id)) {
                 return;
             }
             _this.tick();
         });
     },
-    stop: function(){
+    stop: function() {
         createjs.Ticker.reset();
     },
 
-    pause: function(){
+    pause: function() {
         this.paused = true;
     },
-    resume: function(){
+    resume: function() {
         this.paused = false;
     },
-    tick: function(){
+    tick: function() {
         if (!this.paused) {
             this.time++;
         }
@@ -146,10 +162,10 @@ snowScene.prototype = {
         }
         for (var i in this.snows) { 
             var rectRange = this.snows[i].bitmap.getTransformedBounds();
-            if(rectRange.x>this.stage.canvas.width||rectRange.x<-rectRange.width||rectRange.y>this.stage.canvas.height||rectRange.y<-rectRange.height){
+            if(rectRange.x > this.stage.canvas.width || rectRange.x < -rectRange.width || rectRange.y > this.stage.canvas.height || rectRange.y < -rectRange.height) {
                // this.snows[i].init(this.initSnowData());
                this.removeSnow(this.snows[i]);
-            }else {
+            } else {
                this.snows[i].update();
             }
         }

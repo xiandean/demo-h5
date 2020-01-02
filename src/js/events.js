@@ -19,7 +19,9 @@ export default {
                 isFocus = false
                 setTimeout(() => {
                     if (!isFocus) {
-                        document.body.scrollTop -= 0
+                        let scrollTop = document.body.scrollTop || document.documentElement.scrollTop || 0
+                        scrollTop -= 0
+                        window.scrollTo(0, scrollTop)
                     }
                 }, 0)
             })
@@ -81,7 +83,6 @@ export default {
         }
 
         this.qrcode.makeCode(url);
-
     },
 
     // 创建图片

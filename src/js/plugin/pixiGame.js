@@ -55,7 +55,7 @@ class Game {
     // 注销事件
     off(name, callback) {
         const callbacks = this._callbacks[name];
-        if (callbacks && callbacks instanceof Array) {
+        if (callbacks && callbacks instanceof Array && callback) {
             const index = callbacks.indexOf(callback);
             if (index !== -1) {
                 callbacks.splice(index, 1);
@@ -76,7 +76,6 @@ class Game {
     }
 
     load({manifest, onProgress, onComplete, onError} = {}) {
-        console.log(PIXI.loader)
         PIXI.loader
             .add(manifest || this.manifest)
             .on('progress', (loader) => {
@@ -144,13 +143,77 @@ class Game {
     createObject(objectData) {
         let object = null;
         switch (objectData.type) {
+            case 'Object':
+                object = objectData.object;
+                break;
             case 'AnimatedSprite':
+                // spriteData: {
+                //     images: ['person01_01', 'person01_02'],
+                //     frames: {
+                //         width: 271,
+                //         height: 298
+                //     },
+                //     animations: {
+                //         run: [0, 1, 'run', 0.05]
+                //     }
+                // },
+                let spriteData = objectData.spriteData;
+                let config = spriteData.frames;
                 let frames = [];
-                for (let i = 0; i < objectData.frames.length; i++) {
-                    frames.push(this.getTexture(objectData.frames[i]));
+                for (let i = 0; i < spriteData.images.length; i++) {
+                    let image = spriteData.images[i];
+                    let width = this.getResource(image).texture.width;
+                    let height = this.getResource(image).texture.height;
+                    let column = Math.floor(width / config.width);
+                    let row = Math.floor(height / config.height);
+                    for (let j = 0; j < row; j++) {
+                        for (let k = 0; k < column; k++) {
+                            let rectangle = [k * config.width, j * config.height, config.width, config.height];
+                            frames.push(this.getTexture({
+                                name: image,
+                                rectangle: rectangle,
+                            }));
+                        }
+                    }
                 }
+                // for (let i = 0; i < objectData.frames.length; i++) {
+                //     frames.push(this.getTexture(objectData.frames[i]));
+                // }
                 let autoUpdate = objectData.autoUpdate === false ? false : true;
-                object = new PIXI.AnimatedSprite(frames, autoUpdate);
+                object = new PIXI.extras.AnimatedSprite(frames, autoUpdate);
+                object.animations = spriteData.animations;
+                object.playAnimation = function(animation) {
+                    this.currentAnimation = null;
+                    let currentAnimation = this.animations[animation];
+                    this.animationSpeed = currentAnimation[3] || 1;
+                    if (currentAnimation[1]) {
+                        this.gotoAndPlay(currentAnimation[0]);
+                    } else {
+                        this.gotoAndStop(currentAnimation[0]);
+                    }
+                    this.currentAnimation = currentAnimation;
+                };
+                object.stopAnimation = function(animation) {
+                    this.gotoAndStop(this.animations[animation][0]);
+                    this.currentAnimation = null;
+                };
+                object.onFrameChange = function() {
+                    if (!this.currentAnimation) {
+                        return;
+                    }
+                    if (this.currentFrame === this.currentAnimation[1] && !this.currentAnimation[2]) {
+                        this.stop();
+                        if (this.onAnimationEnd) {
+                            this.onAnimationEnd(this.currentAnimation);
+                        }
+                        this.currentAnimation = null;
+                        return;
+                    } else if (this.currentAnimation[2]) {
+                        if (this.currentFrame > this.currentAnimation[1] || this.currentFrame === 0) {
+                            this.playAnimation(this.currentAnimation[2]);
+                        }
+                    }
+                };
                 break;
             case 'Container':
                 object = new PIXI.Container();
@@ -220,7 +283,7 @@ class Game {
     }
 
     isPaused() {
-        return this.app.ticker.started;
+        return !this.app.ticker.started;
     }
 
     showFPS() {
